@@ -4,6 +4,7 @@ from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
 from app.handlers import router
+from app.commands_menu import set_command
 
 
 async def main() -> None:
@@ -12,6 +13,7 @@ async def main() -> None:
     dp = Dispatcher()
     print("бот запущен")
     dp.include_router(router=router)
+    await set_command(bot=bot)
     await dp.start_polling(bot)
 
 
