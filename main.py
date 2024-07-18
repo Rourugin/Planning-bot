@@ -5,9 +5,11 @@ from dotenv import load_dotenv
 
 from app.handlers import router
 from app.commands_menu import set_command
+from app.database.models import async_main
 
 
 async def main() -> None:
+    await async_main()
     load_dotenv()
     bot = Bot(token=os.getenv('TOKEN'))
     dp = Dispatcher()
