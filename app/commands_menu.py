@@ -13,7 +13,11 @@ async def set_command(bot: Bot):
             description='Список блоков задач'
         ),
         BotCommand(
-            command='new',
+            command='new_list',
+            description='Создать новый блок задач'
+        ),
+        BotCommand(
+            command='new_task',
             description='Создать новый блок задач'
         ),
         BotCommand(

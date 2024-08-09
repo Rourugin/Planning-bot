@@ -26,7 +26,12 @@ async def cmd_plans(message: Message):
     pass
 
 
-@router.message(Command(commands='new'))
+@router.message(Command(commands='new_list'))
+async def cmd_new(message: Message):
+    pass
+
+
+@router.message(Command(commands='new_task'))
 async def cmd_new(message: Message):
     pass
 
