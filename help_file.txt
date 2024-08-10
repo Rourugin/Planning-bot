@@ -1,0 +1,13 @@
+Libaries:
+
+aiogram
+sqlalchemy
+os
+asyncio
+aiosqlite
+
+
+.env :
+
+TOKEN=YOUR_TOKEN
+SQLALCHEM_URL=sqlite+aiosqlite:///database_name.sqlite3

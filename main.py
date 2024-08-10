@@ -1,11 +1,11 @@
 import os
 import asyncio
-from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
+from aiogram import Bot, Dispatcher
 
-from app.handlers import router
 from app.commands_menu import set_command
 from app.database.models import async_main
+from app.handlers import router
 
 
 async def main() -> None:
@@ -13,7 +13,7 @@ async def main() -> None:
     load_dotenv()
     bot = Bot(token=os.getenv('TOKEN'))
     dp = Dispatcher()
-    print("бот запущен")
+    print("bot is working")
     dp.include_router(router=router)
     await set_command(bot=bot)
     await dp.start_polling(bot)
@@ -23,4 +23,4 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("бот был отключён")
+        print("bot was disabled")

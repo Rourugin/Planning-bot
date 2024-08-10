@@ -9,5 +9,5 @@ async def set_user(user_name: str):
         tg_user_name = await session.scalar(select(User).where(User.user_name == user_name))
 
         if not tg_user_name:
-            session.add(User(user_name==user_name))
+            session.add(User(user_name=user_name))
             await session.commit()

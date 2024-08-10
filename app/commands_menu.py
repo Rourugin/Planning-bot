@@ -6,23 +6,23 @@ async def set_command(bot: Bot):
     commands = [
         BotCommand(
             command='menu',
-            description='Меню'
+            description='Main menu'
         ),
         BotCommand(
             command='plans',
-            description='Список блоков задач'
+            description='List of your plans blocks'
         ),
         BotCommand(
             command='new_list',
-            description='Создать новый блок задач'
+            description='Create new plan list'
         ),
         BotCommand(
             command='new_task',
-            description='Создать новый блок задач'
+            description='Create new task'
         ),
         BotCommand(
             command='help',
-            description='Помощь'
+            description='Help'
         )
     ]
 

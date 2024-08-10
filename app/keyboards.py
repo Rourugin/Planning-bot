@@ -2,9 +2,14 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 main = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text='📝 Список'),
-     KeyboardButton(text='⚠ Важные')],
-    [KeyboardButton(text='▶ В процессе'),
-     KeyboardButton(text='💡 Все дела')],
-    [KeyboardButton(text='⚙ Помощь')]
+    [KeyboardButton(text='📝 Your plans'),
+     KeyboardButton(text='⚠ Important')],
+    [KeyboardButton(text='▶ In Progress'),
+     KeyboardButton(text='⚙ Help')]
 ], resize_keyboard=True)
+
+
+new_list_creation = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Quit", callback_data='menu'),
+     InlineKeyboardButton(text="Create!", callback_data='creare_new_list')]
+])
