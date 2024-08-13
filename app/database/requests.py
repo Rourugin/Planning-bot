@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from app.database.models import async_session
-from app.database.models import User
+from app.database.models import User, ListOfTasks
 
 
 async def set_user(user_name: str):

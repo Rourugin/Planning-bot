@@ -1,9 +1,8 @@
 import os
+from sqlalchemy import select
 from dotenv import load_dotenv
-from sqlalchemy import BigInteger
 from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
-from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart, Command
 
@@ -36,7 +35,13 @@ async def cmd_menu(callback: CallbackQuery):
 
 @router.message(Command(commands='plans') or F.text.lower() == 'plans' or F.text == '📝 Your plans')
 async def cmd_plans(message: Message):
-    pass
+    all_lists = ""
+    async with md.async_session() as session:
+        query = select(md.ListOfTasks)
+        result = await session.execute(query)       
+    for listOfTask in result.scalars().all():
+        all_lists += f"{listOfTask.name}\nОписание: {listOfTask.description}\nВажность: {listOfTask.importance}\nСостояние: {listOfTask.condition}\n\n"
+    await message.answer(text=all_lists)
 
 
 @router.message(Command(commands='new_list'))
@@ -80,6 +85,7 @@ async def list_importance(message: Message, state: FSMContext):
 async def list_condition(message: Message, state: FSMContext):
     await state.update_data(condition=message.text)
     data = await state.get_data()
+    #rq.set_list(data=data)
     obj = md.ListOfTasks(
         name = data['name'],
         user_id = int(data['user_id']),

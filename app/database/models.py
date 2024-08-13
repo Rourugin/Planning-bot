@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
+from sqlalchemy import ForeignKey
 from typing import Optional, Annotated
-from sqlalchemy import BigInteger, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
@@ -39,7 +39,7 @@ class task(Base):
 
     id: Mapped[intpk]
     name: Mapped[str]
-    user_id = mapped_column(BigInteger)
+    user_id: Mapped[int]
     parent_list: Mapped[str] = mapped_column(ForeignKey("lists.id"))
     description: Mapped[Optional[str]]
     time_to_comlete: Mapped[Optional[int]]
