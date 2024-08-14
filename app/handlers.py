@@ -40,7 +40,7 @@ async def cmd_plans(message: Message):
         query = select(md.ListOfTasks)
         result = await session.execute(query)       
     for listOfTask in result.scalars().all():
-        all_lists += f"{listOfTask.name}\nОписание: {listOfTask.description}\nВажность: {listOfTask.importance}\nСостояние: {listOfTask.condition}\n\n"
+        all_lists += f"{listOfTask.id}. {listOfTask.name}\nОписание: {listOfTask.description}\nВажность: {listOfTask.importance}\nСостояние: {listOfTask.condition}\n\n"
     await message.answer(text=all_lists)
 
 
@@ -85,7 +85,6 @@ async def list_importance(message: Message, state: FSMContext):
 async def list_condition(message: Message, state: FSMContext):
     await state.update_data(condition=message.text)
     data = await state.get_data()
-    #rq.set_list(data=data)
     obj = md.ListOfTasks(
         name = data['name'],
         user_id = int(data['user_id']),
@@ -102,7 +101,69 @@ async def list_condition(message: Message, state: FSMContext):
 
 @router.message(Command(commands='new_task'))
 async def cmd_new_task(message: Message):
-    pass
+    await message.answer("Wow! You want to create a task? I hope, you have list for it!", reply_markup=kb.new_task_creation)
+
+
+@router.callback_query(F.data == 'creare_new_task')
+async def create_new_task(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(st.newTask.name)
+    await callback.answer(None)
+    await callback.message.answer("Well, let's start with super-mega-ultra-extra-cool name! I know you can do it!", reply_markup=None)
+
+
+@router.message(st.newTask.name)
+async def task_name(message: Message, state: FSMContext):
+    all_lists = ""
+    async with md.async_session() as session:
+        query = select(md.ListOfTasks)
+        result = await session.execute(query)       
+    for listOfTask in result.scalars().all():
+        all_lists += f"{listOfTask.id}. {listOfTask.name}\nОписание: {listOfTask.description}\n\n"
+    await state.update_data(name=message.text)
+    await state.set_state(st.newTask.user_id)
+    await state.update_data(user_id=message.from_user.id)
+    await state.set_state(st.newTask.parent_list)
+    await message.answer(text=f"Okay, now enter an id of list, that will connect to your task\n\n{all_lists}")
+
+
+@router.message(st.newTask.parent_list)
+async def task_parent_list(message: Message, state: FSMContext):
+    await state.update_data(parent_list=message.text)
+    await state.set_state(st.newTask.description)
+    await message.answer("Greate! Now tell something about your task!")
+
+
+@router.message(st.newTask.description)
+async def task_description(message: Message, state: FSMContext):
+    await state.update_data(description=message.text)
+    await state.set_state(st.newTask.importance)
+    await message.answer(f"Do you know, what is next, {message.from_user.first_name}? Importance! Of corse from 0 to 10")
+
+
+@router.message(st.newTask.importance)
+async def task_importance(message: Message, state: FSMContext):
+    await state.update_data(importance=message.text)
+    await state.set_state(st.newTask.condition)
+    await message.answer("And the last one is condition!\n0 - Failed\n1 - Completed\n2 - In progrees\n3 - hasn't statrted")
+
+
+@router.message(st.newTask.condition)
+async def task_condition(message: Message, state: FSMContext):
+    await state.update_data(condition=message.text)
+    data = await state.get_data()
+    obj = md.Task(
+        name = data['name'],
+        user_id = int(data['user_id']),
+        parent_list = int(data['parent_list']),
+        description = data['description'],
+        importance = int(data['importance']),
+        condition = int(data['condition'])
+    )
+    async with md.async_session() as session:
+        session.add(obj)
+        await session.commit()
+    await state.clear()
+    await message.answer("Okay, now your task was added!")
 
 
 @router.message(Command(commands='help') or F.text.lower() == 'help' or F.text == '⚙ Help')

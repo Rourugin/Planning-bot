@@ -14,6 +14,11 @@ class newTask(StatesGroup):
     user_id = State()
     parent_list = State()
     description = State()
-    timeToComplete = State()
     importance = State()
     condition = State()
+
+
+class newChat(StatesGroup):
+    chat_name = State()
+    user_id = State()
+    chat_id = State()

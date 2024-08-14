@@ -34,17 +34,35 @@ class ListOfTasks(Base):
     condition: Mapped[Optional[int]]
 
 
-class task(Base):
+class Task(Base):
     __tablename__ = 'tasks'
 
     id: Mapped[intpk]
     name: Mapped[str]
     user_id: Mapped[int]
-    parent_list: Mapped[str] = mapped_column(ForeignKey("lists.id"))
+    parent_list: Mapped[int] = mapped_column(ForeignKey("lists.id"))
     description: Mapped[Optional[str]]
-    time_to_comlete: Mapped[Optional[int]]
     importance: Mapped[int]
     condition: Mapped[Optional[int]]
+
+
+class Chat(Base):
+    __tablename__ = 'chats'
+
+    id: Mapped[intpk]
+    user_id: Mapped[int]
+    first_chat_id: Mapped[int]
+    second_chat_id: Mapped[Optional[int]]
+    third_chat_id: Mapped[Optional[int]]
+    fourth_chat_id: Mapped[Optional[int]]
+    fifth_chat_id: Mapped[Optional[int]]
+    sixth_chat_id: Mapped[Optional[int]]
+    first_chat_name: Mapped[str]
+    second_chat_name: Mapped[Optional[str]]
+    third_chat_name: Mapped[Optional[str]]
+    fourth_chat_name: Mapped[Optional[str]]
+    fifth_chat_name: Mapped[Optional[str]]
+    sixth_chat_name: Mapped[Optional[str]]
 
 
 async def async_main() -> None:

@@ -8,15 +8,16 @@ Telegram bot on Python using aiogram and sqlalchemy
 ----
 
 <h2>Now work!</h2>
-1. Creating of lists 
+1. Creating of lists <br>
+2. Show tasks <br>
+3. Add tasks
 
 ----
 
 <h2>What I'm doing now</h2>
-1. Add tasks <br>
-2. Show tasks <br>
-3. Change tasks and lists <br>
-4. Sent all to channel/chats <br>
-5. Create multilingualism 
+1. Show tasks <br>
+2. Change tasks and lists <br>
+3. Sent all to channel/chats <br>
+4. Create multilingualism 
 
 ----

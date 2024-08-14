@@ -1,10 +1,11 @@
-SHOW LISTS
+ADD TASKS
 
 
-Okay, it was very interesting experience. I tried to do it in request file (and also tried to transport adding of lists there),
-but, unfortunatly, I didn't do that, because it didn't work (I don't know why, it was the same code with a little changes)
-If you're intrested in my problem (it's sad, but nobody will see it), you can texxt me in Telegram @Rouruginn
-
+Adding of task was easy, because I already created adding of list.
+Maybe I will create showing of tasks and clearing of code today too.
+But I also has problem with addind/showing functions in request file.
+I hope, I will solve them. 
+If you're interested in my problem, you can text to me in Telegram @Rouruginn
 
 
 Thanks for reading!
