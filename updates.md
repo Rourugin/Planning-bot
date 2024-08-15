@@ -1,10 +1,9 @@
-SHOW TASKS
+FIX
 
 
-I did it with the add of tasks, but i changed token and bot didn't work :(
-Because of that I tested only today, but it works good!
-But i have some troubles with invalid value (for example in condition)
-and i'm going to fix them today
+I fixed some errors like if you enter invalid value (maybe importance > 10 or condition entered like string)
+But I couldn't fix start of creating tasks, if you have no lists
+Maybe you can help me, if you're interested in my problem, you can text me in Telegram @Rouruginn
 
 
 Thanks for reading!

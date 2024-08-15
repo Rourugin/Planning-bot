@@ -1,6 +1,6 @@
-import os
 from sqlalchemy import select
 from aiogram import Router, F
+import aiogram.exceptions as aioExc
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart, Command
@@ -9,6 +9,7 @@ import app.states as st
 import app.keyboards as kb
 import app.database.models as md
 import app.database.requests as rq
+
 
 router = Router()
 
@@ -30,37 +31,76 @@ async def cmd_menu(callback: CallbackQuery):
     await callback.message.answer("From here you can come anywhere!", reply_markup=kb.main)
 
 
-@router.message(F.text == '📝 Your plans' or Command(commands='plans'))
+@router.message(Command(commands='plans'))
+async def cmd_all_plans(message: Message):
+    try:
+        all_plans = ""
+        async with md.async_session() as session:
+            list_query = select(md.ListOfTasks)
+            task_query = select(md.Task)
+            list_result = await session.execute(list_query)
+            task_result = await session.execute(task_query)       
+        for listOfTask in list_result.scalars().all():
+            all_plans += f"{listOfTask.id}. {listOfTask.name}\nDescription: {listOfTask.description}\nImportance: {listOfTask.importance}\n"
+            if (listOfTask.condition == 0):
+                all_plans += "Condition: ❌Failed\n"
+            elif (listOfTask.condition == 1):
+                all_plans += "Condition: ✅Completed\n"
+            elif (listOfTask.condition == 2):
+                all_plans += "Condition: 🔄In progress\n"
+            elif (listOfTask.condition == 3):
+                all_plans += "Condiotion: 🕧Hasn't started\n"
+            for task in task_result.scalars().all():
+                if (task.parent_list == listOfTask.id):
+                    all_plans += f"[____{task.id}. {task.name}\n          Description: {task.description}\n          Importance: {task.importance}\n"
+                    if (listOfTask.condition == 0):
+                        all_plans += "          Condition: ❌Failed\n\n"
+                    elif (listOfTask.condition == 1):
+                        all_plans += "          Condition: ✅Completed\n\n"
+                    elif (listOfTask.condition == 2):
+                        all_plans += "          Condition: 🔄In progress\n\n"
+                    elif (listOfTask.condition == 3):
+                        all_plans += "          Condiotion: 🕧Hasn't started\n\n"
+            all_plans += "\n"
+        await message.answer(text=all_plans)
+    except aioExc.TelegramBadRequest:
+        await message.answer("Wow! It's so empty here...")
+
+
+@router.message(F.text == '📝 Your plans')
 async def all_plans(message: Message):
-    all_plans = ""
-    async with md.async_session() as session:
-        list_query = select(md.ListOfTasks)
-        task_query = select(md.Task)
-        list_result = await session.execute(list_query)
-        task_result = await session.execute(task_query)       
-    for listOfTask in list_result.scalars().all():
-        all_plans += f"{listOfTask.id}. {listOfTask.name}\nDescription: {listOfTask.description}\nImportance: {listOfTask.importance}\n"
-        if (listOfTask.condition == 0):
-            all_plans += "Condition: ❌Failed\n"
-        elif (listOfTask.condition == 1):
-            all_plans += "Condition: ✅Completed\n"
-        elif (listOfTask.condition == 2):
-            all_plans += "Condition: 🔄In progress\n"
-        elif (listOfTask.condition == 3):
-            all_plans += "Condiotion: 🕧Hasn't started\n"
-        for task in task_result.scalars().all():
-            if (task.parent_list == listOfTask.id):
-                all_plans += f"[____{task.id}. {task.name}\n          Description: {task.description}\n          Importance: {task.importance}\n"
-                if (listOfTask.condition == 0):
-                    all_plans += "          Condition: ❌Failed\n\n"
-                elif (listOfTask.condition == 1):
-                    all_plans += "          Condition: ✅Completed\n\n"
-                elif (listOfTask.condition == 2):
-                    all_plans += "          Condition: 🔄In progress\n\n"
-                elif (listOfTask.condition == 3):
-                    all_plans += "          Condiotion: 🕧Hasn't started\n\n"
-        all_plans += "\n"
-    await message.answer(text=all_plans)
+    try:
+        all_plans = ""
+        async with md.async_session() as session:
+            list_query = select(md.ListOfTasks)
+            task_query = select(md.Task)
+            list_result = await session.execute(list_query)
+            task_result = await session.execute(task_query)       
+        for listOfTask in list_result.scalars().all():
+            all_plans += f"{listOfTask.id}. {listOfTask.name}\nDescription: {listOfTask.description}\nImportance: {listOfTask.importance}\n"
+            if (listOfTask.condition == 0):
+                all_plans += "Condition: ❌Failed\n"
+            elif (listOfTask.condition == 1):
+                all_plans += "Condition: ✅Completed\n"
+            elif (listOfTask.condition == 2):
+                all_plans += "Condition: 🔄In progress\n"
+            elif (listOfTask.condition == 3):
+                all_plans += "Condiotion: 🕧Hasn't started\n"
+            for task in task_result.scalars().all():
+                if (task.parent_list == listOfTask.id):
+                    all_plans += f"[____{task.id}. {task.name}\n          Description: {task.description}\n          Importance: {task.importance}\n"
+                    if (listOfTask.condition == 0):
+                        all_plans += "          Condition: ❌Failed\n\n"
+                    elif (listOfTask.condition == 1):
+                        all_plans += "          Condition: ✅Completed\n\n"
+                    elif (listOfTask.condition == 2):
+                        all_plans += "          Condition: 🔄In progress\n\n"
+                    elif (listOfTask.condition == 3):
+                        all_plans += "          Condiotion: 🕧Hasn't started\n\n"
+            all_plans += "\n"
+        await message.answer(text=all_plans)
+    except aioExc.TelegramBadRequest:
+        await message.answer("Wow! It's so empty here...")
 
 
 @router.message(Command(commands='new_list'))
@@ -94,33 +134,51 @@ async def list_description(message: Message, state: FSMContext):
 
 @router.message(st.newList.importance)
 async def list_importance(message: Message, state: FSMContext):
-    await state.update_data(importance=message.text)
-    await state.set_state(st.newList.condition)
-    await message.answer("Okay, now the last step! In what condition your list.\nSome examples for you:\n" +
-                         "0 - Failed\n1 - Completed\n2 - In progrees\n3 - Hasn't statrted")
+    try:
+        if (int(message.text) >= 0 and int(message.text) <= 10):
+            await state.update_data(importance=message.text)
+            await state.set_state(st.newList.condition)
+            await message.answer("Okay, now the last step! In what condition your list.\nSome examples for you:\n" +
+                                "0 - Failed\n1 - Completed\n2 - In progrees\n3 - Hasn't statrted")
+        else:
+            await message.answer("Man, its an invalid value. Try something between 0 and 10") 
+    except ValueError:
+        await message.answer("I think, you enter something invalid, because it isn't integer. Try somethig between 0 and 10")   
 
 
 @router.message(st.newList.condition)
 async def list_condition(message: Message, state: FSMContext):
-    await state.update_data(condition=message.text)
-    data = await state.get_data()
-    obj = md.ListOfTasks(
-        name = data['name'],
-        user_id = int(data['user_id']),
-        description = data['description'],
-        importance = int(data['importance']),
-        condition = int(data['condition'])
-    )
-    async with md.async_session() as session:
-        session.add(obj)
-        await session.commit()
-    await state.clear()
-    await message.answer("Your new cool list was added!😎")
+    try:
+        if (int(message.text) < 0 or int(message.text) > 3):
+            await message.answer("I told you to choose something between 0 and 3. Do it, pleeeeeeeeeeeeaseeeeeeeeee")
+        elif (int(message.text) >= 0 and int(message.text) <= 3):
+            await state.update_data(condition=message.text)
+            data = await state.get_data()
+            obj = md.ListOfTasks(
+                name = data['name'],
+                user_id = int(data['user_id']),
+                description = data['description'],
+                importance = int(data['importance']),
+                condition = int(data['condition'])
+            )
+            async with md.async_session() as session:
+                session.add(obj)
+                await session.commit()
+            await state.clear()
+            await message.answer("Your new cool list was added!😎")
+    except ValueError:
+        await message.answer("No, you need to choose an INTEGER number between 0 and 3")
 
 
 @router.message(Command(commands='new_task'))
 async def cmd_new_task(message: Message):
-    await message.answer("Wow! You want to create a task? I hope, you have list for it!", reply_markup=kb.new_task_creation)
+    # try:
+    #     isNull = rq.check_nullable_lists()
+    #     if (isNull == True):
+    #         pass
+        await message.answer("Wow! You want to create a task? I hope, you have list for it!", reply_markup=kb.new_task_creation)
+    # except RuntimeError:
+    #     await message.answer("You haven't any lists. Please create it first")
 
 
 @router.callback_query(F.data == 'creare_new_task')
@@ -135,7 +193,7 @@ async def task_name(message: Message, state: FSMContext):
     all_lists = ""
     async with md.async_session() as session:
         query = select(md.ListOfTasks)
-        result = await session.execute(query)       
+        result = await session.execute(query)
     for listOfTask in result.scalars().all():
         all_lists += f"{listOfTask.id}. {listOfTask.name}\nDescription: {listOfTask.description}\n\n"
     await state.update_data(name=message.text)
@@ -147,9 +205,22 @@ async def task_name(message: Message, state: FSMContext):
 
 @router.message(st.newTask.parent_list)
 async def task_parent_list(message: Message, state: FSMContext):
-    await state.update_data(parent_list=message.text)
-    await state.set_state(st.newTask.description)
-    await message.answer("Greate! Now tell something about your task!")
+    try:
+        lastList = 0
+        async with md.async_session() as session:
+            query = select(md.ListOfTasks)
+            result = await session.execute(query)
+        for listOfTask in result.scalars().all():
+            if (listOfTask.id > lastList):
+                lastList = listOfTask.id
+        if (int(message.text) >= 1 and int(message.text) <= lastList):
+            await state.update_data(parent_list=message.text)
+            await state.set_state(st.newTask.description)
+            await message.answer("Greate! Now tell something about your task!")
+        elif(int(message.text) < 1 or int(message.text) > lastList):
+            await message.answer("You have no list with that number")
+    except ValueError:
+        await message.answer("You need to enter a NUMBER of list, not his name, etc.")
 
 
 @router.message(st.newTask.description)
@@ -161,28 +232,40 @@ async def task_description(message: Message, state: FSMContext):
 
 @router.message(st.newTask.importance)
 async def task_importance(message: Message, state: FSMContext):
-    await state.update_data(importance=message.text)
-    await state.set_state(st.newTask.condition)
-    await message.answer("And the last one is condition!\n0 - Failed\n1 - Completed\n2 - In progrees\n3 - Hasn't statrted")
+    try:
+        if (int(message.text) < 0 or int(message.text) > 10):
+            await message.answer("Bro, you did it in list creation, I hope you can choose number between 0 and 10")
+        elif(int(message.text) >= 0 or int(message.text) <= 10):
+            await state.update_data(importance=message.text)
+            await state.set_state(st.newTask.condition)
+            await message.answer("And the last one is condition!\n0 - Failed\n1 - Completed\n2 - In progrees\n3 - Hasn't statrted")
+    except ValueError:
+        await message.answer("You think, that it's funny? Enter integer number between 0 and 10")
 
 
 @router.message(st.newTask.condition)
 async def task_condition(message: Message, state: FSMContext):
-    await state.update_data(condition=message.text)
-    data = await state.get_data()
-    obj = md.Task(
-        name = data['name'],
-        user_id = int(data['user_id']),
-        parent_list = int(data['parent_list']),
-        description = data['description'],
-        importance = int(data['importance']),
-        condition = int(data['condition'])
-    )
-    async with md.async_session() as session:
-        session.add(obj)
-        await session.commit()
-    await state.clear()
-    await message.answer("Okay, now your task was added!")
+    try:
+        if (int(message.text) < 0 or int(message.text) > 3):
+            pass
+        elif(int(message.text) >= 0 and int(message.text) <= 3):
+            await state.update_data(condition=message.text)
+            data = await state.get_data()
+            obj = md.Task(
+                name = data['name'],
+                user_id = int(data['user_id']),
+                parent_list = int(data['parent_list']),
+                description = data['description'],
+                importance = int(data['importance']),
+                condition = int(data['condition'])
+            )
+            async with md.async_session() as session:
+                session.add(obj)
+                await session.commit()
+            await state.clear()
+            await message.answer("Okay, now your task was added!")
+    except ValueError:
+        await message.answer("...\n\nI asked enter something between 0 and 3, but you...")
 
 
 @router.message(Command(commands='help') or F.text.lower() == 'help' or F.text == '⚙ Help')

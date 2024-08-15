@@ -11,3 +11,11 @@ async def set_user(user_name: str):
         if not tg_user_name:
             session.add(User(user_name=user_name))
             await session.commit()
+
+
+async def check_nullable_lists():
+    lists_tb_nl = '''
+    SELECT True FROM lists LIMIT 1;
+    '''
+
+    return lists_tb_nl
