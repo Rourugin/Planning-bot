@@ -1,7 +1,6 @@
 import os
 from sqlalchemy import select
-from dotenv import load_dotenv
-from aiogram import Router, Bot, F
+from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart, Command
@@ -11,8 +10,6 @@ import app.keyboards as kb
 import app.database.models as md
 import app.database.requests as rq
 
-load_dotenv()
-bot = Bot(token=os.getenv('TOKEN'))
 router = Router()
 
 
@@ -33,15 +30,37 @@ async def cmd_menu(callback: CallbackQuery):
     await callback.message.answer("From here you can come anywhere!", reply_markup=kb.main)
 
 
-@router.message(Command(commands='plans') or F.text.lower() == 'plans' or F.text == '📝 Your plans')
-async def cmd_plans(message: Message):
-    all_lists = ""
+@router.message(F.text == '📝 Your plans' or Command(commands='plans'))
+async def all_plans(message: Message):
+    all_plans = ""
     async with md.async_session() as session:
-        query = select(md.ListOfTasks)
-        result = await session.execute(query)       
-    for listOfTask in result.scalars().all():
-        all_lists += f"{listOfTask.id}. {listOfTask.name}\nОписание: {listOfTask.description}\nВажность: {listOfTask.importance}\nСостояние: {listOfTask.condition}\n\n"
-    await message.answer(text=all_lists)
+        list_query = select(md.ListOfTasks)
+        task_query = select(md.Task)
+        list_result = await session.execute(list_query)
+        task_result = await session.execute(task_query)       
+    for listOfTask in list_result.scalars().all():
+        all_plans += f"{listOfTask.id}. {listOfTask.name}\nDescription: {listOfTask.description}\nImportance: {listOfTask.importance}\n"
+        if (listOfTask.condition == 0):
+            all_plans += "Condition: ❌Failed\n"
+        elif (listOfTask.condition == 1):
+            all_plans += "Condition: ✅Completed\n"
+        elif (listOfTask.condition == 2):
+            all_plans += "Condition: 🔄In progress\n"
+        elif (listOfTask.condition == 3):
+            all_plans += "Condiotion: 🕧Hasn't started\n"
+        for task in task_result.scalars().all():
+            if (task.parent_list == listOfTask.id):
+                all_plans += f"[____{task.id}. {task.name}\n          Description: {task.description}\n          Importance: {task.importance}\n"
+                if (listOfTask.condition == 0):
+                    all_plans += "          Condition: ❌Failed\n\n"
+                elif (listOfTask.condition == 1):
+                    all_plans += "          Condition: ✅Completed\n\n"
+                elif (listOfTask.condition == 2):
+                    all_plans += "          Condition: 🔄In progress\n\n"
+                elif (listOfTask.condition == 3):
+                    all_plans += "          Condiotion: 🕧Hasn't started\n\n"
+        all_plans += "\n"
+    await message.answer(text=all_plans)
 
 
 @router.message(Command(commands='new_list'))
@@ -78,7 +97,7 @@ async def list_importance(message: Message, state: FSMContext):
     await state.update_data(importance=message.text)
     await state.set_state(st.newList.condition)
     await message.answer("Okay, now the last step! In what condition your list.\nSome examples for you:\n" +
-                         "0 - Failed\n1 - Completed\n2 - In progrees\n3 - hasn't statrted")
+                         "0 - Failed\n1 - Completed\n2 - In progrees\n3 - Hasn't statrted")
 
 
 @router.message(st.newList.condition)
@@ -118,7 +137,7 @@ async def task_name(message: Message, state: FSMContext):
         query = select(md.ListOfTasks)
         result = await session.execute(query)       
     for listOfTask in result.scalars().all():
-        all_lists += f"{listOfTask.id}. {listOfTask.name}\nОписание: {listOfTask.description}\n\n"
+        all_lists += f"{listOfTask.id}. {listOfTask.name}\nDescription: {listOfTask.description}\n\n"
     await state.update_data(name=message.text)
     await state.set_state(st.newTask.user_id)
     await state.update_data(user_id=message.from_user.id)
@@ -144,7 +163,7 @@ async def task_description(message: Message, state: FSMContext):
 async def task_importance(message: Message, state: FSMContext):
     await state.update_data(importance=message.text)
     await state.set_state(st.newTask.condition)
-    await message.answer("And the last one is condition!\n0 - Failed\n1 - Completed\n2 - In progrees\n3 - hasn't statrted")
+    await message.answer("And the last one is condition!\n0 - Failed\n1 - Completed\n2 - In progrees\n3 - Hasn't statrted")
 
 
 @router.message(st.newTask.condition)
@@ -170,4 +189,4 @@ async def task_condition(message: Message, state: FSMContext):
 async def cmd_help(message: Message):
     await message.answer("If you can't do something, try 'menu'.\n" + 
                          "If you have another problems, text me @Rouruginn")
-    
+

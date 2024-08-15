@@ -1,11 +1,10 @@
-ADD TASKS
+SHOW TASKS
 
 
-Adding of task was easy, because I already created adding of list.
-Maybe I will create showing of tasks and clearing of code today too.
-But I also has problem with addind/showing functions in request file.
-I hope, I will solve them. 
-If you're interested in my problem, you can text to me in Telegram @Rouruginn
+I did it with the add of tasks, but i changed token and bot didn't work :(
+Because of that I tested only today, but it works good!
+But i have some troubles with invalid value (for example in condition)
+and i'm going to fix them today
 
 
 Thanks for reading!
