@@ -103,6 +103,58 @@ async def all_plans(message: Message):
         await message.answer("Wow! It's so empty here...")
 
 
+@router.message(F.text == '⚠ Important')
+async def important_plans(message: Message):
+    try:
+        important_plans = ""
+        async with md.async_session() as session:
+            query_list = select(md.ListOfTasks)
+            query_task = select(md.Task)
+            result_list = await session.execute(query_list)
+            result_task = await session.execute(query_task)
+        for listOfTask in result_list.scalars().all():
+            importantList = False
+            if (listOfTask.importance > 5):
+                importantList = True
+                important_plans += f"{listOfTask.id}. {listOfTask.name}\nDescription: {listOfTask.description}\nImportance: {listOfTask.importance}\n"
+                if (listOfTask.condition == 0):
+                    important_plans += "Condition: ❌Failed\n"
+                elif (listOfTask.condition == 1):
+                    important_plans += "Condition: ✅Completed\n"
+                elif (listOfTask.condition == 2):
+                    important_plans += "Condition: 🔄In progress\n"
+                elif (listOfTask.condition == 3):
+                    important_plans += "Condiotion: 🕧Hasn't started\n"
+            elif (listOfTask.importance <= 5):
+                importantList = False
+            for task in result_task.scalars().all():
+                if (task.parent_list == listOfTask.id):
+                    if (importantList == True):
+                        important_plans += f"[____{task.id}. {task.name}\n          Description: {task.description}\n          Importance: {task.importance}\n"
+                        if (task.condition == 0):
+                            important_plans += "          Condition: ❌Failed\n\n"
+                        elif (task.condition == 1):
+                                important_plans += "          Condition: ✅Completed\n\n"
+                        elif (task.condition == 2):
+                            important_plans += "          Condition: 🔄In progress\n\n"
+                        elif (task.condition == 3):
+                            important_plans += "          Condiotion: 🕧Hasn't started\n\n"
+                    elif (importantList == False):
+                        if (task.importance > 5):
+                            important_plans += f"{task.id}. {task.name}\nDescription: {task.description}\nParent list: {listOfTask.name}\nImportance: {task.importance}\n"
+                            if (task.condition == 0):
+                                important_plans += "Condition: ❌Failed\n\n"
+                            elif (task.condition == 1):
+                                important_plans += "Condition: ✅Completed\n\n"
+                            elif (task.condition == 2):
+                                important_plans += "Condition: 🔄In progress\n\n"
+                            elif (task.condition == 3):
+                                important_plans += "Condiotion: 🕧Hasn't started\n\n"
+        await message.answer(text=important_plans)
+    except aioExc.TelegramBadRequest:
+        await message.answer("You have no plans, that has importance more then 5!")
+
+
 @router.message(Command(commands='new_list'))
 async def cmd_new_list(message: Message):
     await message.answer("Creation of new list of tasks!\nAre you sure, that you want to do it?", reply_markup=kb.new_list_creation)
@@ -172,13 +224,21 @@ async def list_condition(message: Message, state: FSMContext):
 
 @router.message(Command(commands='new_task'))
 async def cmd_new_task(message: Message):
-    # try:
-    #     isNull = rq.check_nullable_lists()
-    #     if (isNull == True):
-    #         pass
+    isNull = True
+    async with md.async_session() as session:
+        query = select(md.ListOfTasks)
+        result = await session.execute(query)
+    for listOfTask in result.scalars().all():
+        if (listOfTask.id >= 1):
+            isNull = False
+            break
+        else:
+            isNull = True
+            break
+    if (isNull == False):
         await message.answer("Wow! You want to create a task? I hope, you have list for it!", reply_markup=kb.new_task_creation)
-    # except RuntimeError:
-    #     await message.answer("You haven't any lists. Please create it first")
+    elif (isNull == True):
+        await message.answer("You haven't any lists. Please create it first")
 
 
 @router.callback_query(F.data == 'creare_new_task')
@@ -270,6 +330,6 @@ async def task_condition(message: Message, state: FSMContext):
 
 @router.message(Command(commands='help') or F.text.lower() == 'help' or F.text == '⚙ Help')
 async def cmd_help(message: Message):
-    await message.answer("If you can't do something, try 'menu'.\n" + 
-                         "If you have another problems, text me @Rouruginn")
+    await message.answer("To create new list or new task, you can use /new_list or /new_task \nTo see all your plans use /plans or button 'Your plans' in main menu\n" + 
+                         "To see some specific plans use buttons from main menu \nIf you have another problems, text me @Rouruginn")
 

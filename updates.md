@@ -1,8 +1,11 @@
-FIX
+FIX & IMPORTANT PLANS
 
 
-I fixed some errors like if you enter invalid value (maybe importance > 10 or condition entered like string)
-But I couldn't fix start of creating tasks, if you have no lists
+I fixed problem in creation of tasks, if you haven't lists
+I also created showing of important plans (importance > 5), but it isn't sorted, i'd like to do it later :(
+And I have a problem with request file again :(
+I created a func in request file that returns string, it was worked
+Some changes in this file later (not this func), it returns courutine :(
 Maybe you can help me, if you're interested in my problem, you can text me in Telegram @Rouruginn
 
 
